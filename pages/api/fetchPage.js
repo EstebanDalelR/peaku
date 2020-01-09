@@ -11,8 +11,8 @@ export default (req, res) => {
     console.log('loaded HTML')
     let $ = cheerio.load(html)
     let title
-    console.log($('.pg-headline').text())
-    title = $('.pg-headline').text()
+    console.log($('h1').text())
+    title = $('h1').text()
     console.log(title)
     res.send({ title: title || req.body.url })
   })
