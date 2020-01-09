@@ -1,31 +1,78 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Head from 'next/head'
 import Nav from '../components/nav'
 
-const Home = () => (
-  <div>
-    <Head>
-      <title>Analyze sentiments</title>
-      <link rel='icon' href='/favicon.ico' />
-    </Head>
+const Home = () => {
+  let [url, setURL] = useState('')
+  let [finishedFetch, setFinishedFetch] = useState(false)
+  let [startedFetch, setStartedFetch] = useState(false)
+  let [newsTitle, setNewsTitle] = useState('')
+  let [finishedSentiment, setFinishedSentiment] = useState(false)
+  let [startedSentiment, setStartedSentiment] = useState(false)
+  async function sendPage () {
+    setStartedFetch(true)
+    let resp = await fetch(
+      '/api/fetchPage',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url: url })
+      }
+    )
+    const myJson = await resp.json()
+    setFinishedFetch(true)
+    console.log(myJson)
+    setNewsTitle(myJson.title)
+  }
 
-    <Nav />
+  return (
+    <div>
+      <Head>
+        <title>Analyze sentiments</title>
+        <link rel='icon' href='/favicon.ico' />
+      </Head>
 
-    <div className='hero'>
-      <h1 className='title'>Welcome to the Newsentiment!</h1>
-      <p className='description'>
+      <Nav />
+
+      <div className='hero'>
+        <h1 className='title'>Welcome to the NewSentiment!</h1>
+        <p className='description'>
         To get started, paste <a>a url in the textbox</a> and wait.
-      </p>
+        </p>
 
-      <div className='row'>
-        <input
-          placeholder='Paste your news URL here'
-          type='text'
-          autoFocus />
+        <div className='row'>
+          {!startedFetch
+            ? <>
+              <input
+                placeholder='Paste your news URL here'
+                type='url'
+                autoFocus
+                value={url}
+                onChange={(e) => setURL(e.target.value)}
+              />
+              <button onClick={sendPage}>Get page</button>
+            </>
+            : !finishedFetch
+              ? <h5>loading...</h5>
+              : <>
+                <h5>Is the title of the news article: "{newsTitle}"?</h5>
+                <button onClick={() => {
+                  setStartedFetch(false)
+                  setFinishedFetch(false)
+                }}>Retry</button>
+                <button onClick={() => setStartedSentiment(true)}>Confirm</button>
+              </>
+          }
+        </div>
       </div>
-    </div>
+      {startedSentiment
+        ? <h3>Getting Sentiments</h3>
+        : null
+      }
 
-    <style jsx>{`
+      <style jsx>{`
       .hero {
         width: 100%;
         color: #333;
@@ -71,7 +118,8 @@ const Home = () => (
         color: #333;
       }
     `}</style>
-  </div>
-)
+    </div>
+  )
+}
 
 export default Home
